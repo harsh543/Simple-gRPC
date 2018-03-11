@@ -6,6 +6,7 @@ package work_leave; //Optional: unique package name.
 service EmployeeLeaveDaysService {
   rpc EligibleForLeave (Employee) returns (LeaveEligibility);
   rpc grantLeave (Employee) returns (LeaveFeedback);
+  rpc Watch (Empty) returns (stream Employee) {}
 }
 
 // Message Type fefinition for an Employee.
