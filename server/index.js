@@ -2,7 +2,7 @@ const grpc = require('grpc');
 
 const proto = grpc.load('proto/work_leave.proto');
 const server = new grpc.Server();
-
+var leaveStream = new events.EventEmitter();
 server.addProtoService(proto.work_leave.EmployeeLeaveDaysService.service, {
 
   eligibleForLeave(call, callback) {
@@ -29,9 +29,10 @@ server.addProtoService(proto.work_leave.EmployeeLeaveDaysService.service, {
     });
   },
    watch: function(stream) {
-        bookStream.on('new_book', function(book){
-            stream.write(book);
+        leaveStream.on('new_leave', function(granted_leave_days){
+            stream.write(granted_leave_days);
         });
+   }
 });
 
 server.bind('0.0.0.0:50050', grpc.ServerCredentials.createInsecure());
