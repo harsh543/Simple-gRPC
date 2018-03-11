@@ -43,3 +43,9 @@ client.eligibleForLeave(employees.valid, (error, response) => {
     console.log("Error:", error.message);
   }
 });
+
+function watchLeaves() {
+  var call = client.watch({});
+  call.on('data', function(response.accrued_leave_days) {
+    console.log(response.accrued_leave_days);
+  });
