@@ -1,51 +1,68 @@
-const grpc = require('grpc');
+var grpc = require('grpc');
 
 const protoPath = require('path').join(__dirname, '../..', 'proto');
 const proto = grpc.load({root: protoPath, file: 'work_leave.proto' });
 
-//Create a new client instance that binds to the IP and port of the grpc server.
 const client = new proto.work_leave.EmployeeLeaveDaysService('localhost:50050', grpc.credentials.createInsecure());
 
-const employees = {
-  valid: {
-    employee_id: 1,
-    name: 'John Kariuki',
-    accrued_leave_days: 10,
-    requested_leave_days: 4
-  },
-  ineligible: {
-    employee_id: 1,
-    name: 'John Kariuki',
-    accrued_leave_days: 10,
-    requested_leave_days: 20
-  },
-  invalid: {
-    employee_id: 1,
-    name: 'John Kariuki',
-    accrued_leave_days: 10,
-    requested_leave_days: -1
-  },
-  illegal: {
-    foo: 'bar'
-  }
+function printResponse(error, response) {
+    if (error)
+        console.log('Error: ', error);
+    else
+        console.log(response);
 }
 
-client.eligibleForLeave(employees.valid, (error, response) => {
-  if (!error) {
-    if (response.eligible) {
-      client.grantLeave(employees.valid, (error, response) => {
-        console.log(response);
-      })
-    } else {
-      console.log("You are currently ineligible for leave days");
-    }
-  } else {
-    console.log("Error:", error.message);
-  }
-});
+function listEmployees() {
+    client.list({}, function(error, employees) {
+        printResponse(error, employees);
+    });
+}
 
-function watchLeaves() {
-  var call = client.watch({});
-  call.on('data', function(response.accrued_leave_days) {
-    console.log(response.accrued_leave_days);
-  });
+function insertEmployee(id, name, desig) {
+    var employee = {
+        id: parseInt(id),
+        name: name,
+        desig: desig
+    };
+    client.insert(employee, function(error, empty) {
+        printResponse(error, employee);
+    });
+}
+
+function getEmployee(id) {
+    client.get({
+        id: parseInt(id)
+    }, function(error, employee) {
+        printResponse(error, employee);
+    });
+}
+
+function deleteEmployee(id) {
+    client.delete({
+        id: parseInt(id)
+    }, function(error, empty) {
+        printResponse(error, empty);
+    });
+}
+
+function watchEmployees() {
+    var call = client.watch({});
+    call.on('data', function(employee) {
+        console.log(employee);
+    });
+}
+
+var processName = process.argv.shift();
+var scriptName = process.argv.shift();
+var command = process.argv.shift();
+
+if (command == 'list')
+    listEmployees();
+else if (command == 'insert')
+    insertEmployee(process.argv[0], process.argv[1], process.argv[2]);
+else if (command == 'get')
+    getEmployee(process.argv[0]);
+else if (command == 'delete')
+    deleteEmployee(process.argv[0]);
+else if (command == 'watch')
+    watchEmployees();
