@@ -32,8 +32,13 @@ message LeaveFeedback  {
   float accrued_leave_days = 2;
   float granted_leave_days = 3;
 }
- rpc List (Empty) returns (EmployeeList) {}
-  rpc Insert (Employee) returns (Empty) {}
-  rpc Get (EmployeeIdRequest) returns (Employee) {}
-  rpc Delete (EmployeeIdRequest) returns (Empty) {}
-  rpc Watch (Empty) returns (stream Employee) {}
+message Empty {}
+
+// Message Type definition for list of Employees
+message EmployeeList {
+  repeated Employee employees = 1;
+}
+
+message EmployeeIdRequest {
+  int32 id = 1;
+}
