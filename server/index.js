@@ -1,42 +1,55 @@
-const grpc = require('grpc');
+var grpc = require('grpc');
 
 const proto = grpc.load('proto/work_leave.proto');
-const server = new grpc.Server();
-var leaveStream = new events.EventEmitter();
+
+var events = require('events');
+var employeeStream = new events.EventEmitter();
+
+// In-memory array of employee objects
+var employees = [{
+    id: 123,
+    name: 'John Kariuki',
+    desig: 'Developer'
+}];
+
+var server = new grpc.Server();
 server.addProtoService(proto.work_leave.EmployeeLeaveDaysService.service, {
-
-  eligibleForLeave(call, callback) {
-    if (call.request.requested_leave_days > 0) {
-      if (call.request.accrued_leave_days > call.request.requested_leave_days) {
-        callback(null, { eligible: true });
-      } else {
-        callback(null, { eligible: false });
-      }
-    } else {
-      callback(new Error('Invalid requested days'));
-    }
-  },
-
-
-  grantLeave(call, callback) {
-    let granted_leave_days = call.request.requested_leave_days;
-    let accrued_leave_days = call.request.accrued_leave_days - granted_leave_days;
-
-    callback(null, {
-      granted: true,
-      granted_leave_days,
-      accrued_leave_days
-    });
-  },
-   watch: function(stream) {
-        leaveStream.on('new_leave', function(granted_leave_days){
-            stream.write(granted_leave_days);
+    list: function(call, callback) {
+        callback(null, employees);
+    },
+    insert: function(call, callback) {
+        var employee = call.request;
+        employees.push(employee);
+        employeeStream.emit('new_employee', employee);
+        callback(null, {});
+    },
+    get: function(call, callback) {
+        for (var i = 0; i < employees.length; i++)
+            if (employees[i].id == call.request.id)
+                return callback(null, employees[i]);
+        callback({
+            code: grpc.status.NOT_FOUND,
+            details: 'Not found'
         });
-   }
+    },
+    delete: function(call, callback) {
+        for (var i = 0; i < employess.length; i++) {
+            if (employees[i].id == call.request.id) {
+                employees.splice(i, 1);
+                return callback(null, {});
+            }
+        }
+        callback({
+            code: grpc.status.NOT_FOUND,
+            details: 'Not found'
+        });
+    },
+    watch: function(stream) {
+        employeeStream.on('new_employee', function(employee){
+            stream.write(employee);
+        });
+    }
 });
 
-server.bind('0.0.0.0:50050', grpc.ServerCredentials.createInsecure());
-
-//Start the server
+server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
 server.start();
-console.log('grpc server running on port:', '0.0.0.0:50050');
