@@ -6,6 +6,10 @@ package work_leave; //Optional: unique package name.
 service EmployeeLeaveDaysService {
   rpc EligibleForLeave (Employee) returns (LeaveEligibility);
   rpc grantLeave (Employee) returns (LeaveFeedback);
+  rpc List (Empty) returns (EmployeeList) {}
+  rpc Insert (Employee) returns (Empty) {}
+  rpc Get (EmployeeIdRequest) returns (Employee) {}
+  rpc Delete (EmployeeIdRequest) returns (Empty) {}
   rpc Watch (Empty) returns (stream Employee) {}
 }
 
@@ -28,3 +32,8 @@ message LeaveFeedback  {
   float accrued_leave_days = 2;
   float granted_leave_days = 3;
 }
+ rpc List (Empty) returns (EmployeeList) {}
+  rpc Insert (Employee) returns (Empty) {}
+  rpc Get (EmployeeIdRequest) returns (Employee) {}
+  rpc Delete (EmployeeIdRequest) returns (Empty) {}
+  rpc Watch (Empty) returns (stream Employee) {}
